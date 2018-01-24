@@ -35,7 +35,8 @@ from db.db_work import registration,\
     set_comment_to_expenses,\
     add_pay,\
     get_pays_month_fpr_pie_diagramm,\
-    get_statistic
+    get_statistic,\
+    get_by_categories_pay_month
 from messages import message_start,\
     message_set_valute,\
     message_help,\
@@ -49,7 +50,7 @@ from messages import message_start,\
 from view_diagramm import pie_diagram
 import os
 import traceback
-from write_to_xls import file
+from write_to_xls import file,file_categories
 import binascii
 
 today = 'сегодня'
@@ -180,6 +181,10 @@ def handler_text(message):
             cat = get_pays_month_fpr_pie_diagramm(message.from_user.id)
             # print(cat)
             try:
+                data = get_by_categories_pay_month(message.from_user.id)
+                name = (str(binascii.hexlify(os.urandom(20)))[2:42])
+                path = file_categories(data,name)
+                bot.send_document(message.from_user.id, open(path, 'rb'))
                 name_file = pie_diagram(cat)
                 # print(name_file)
                 # bot.send_photo(message.from_user.id, open(name_file, 'rb'))

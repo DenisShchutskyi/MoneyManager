@@ -65,3 +65,4 @@ def pie_diagram(categories):
         loc = 'lower left', labels = data_names )
     fig.savefig(name)
     return name
+

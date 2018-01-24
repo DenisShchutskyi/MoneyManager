@@ -153,6 +153,53 @@ def get_pays_month_fpr_pie_diagramm(id_user,
 
 
 @decorator_db
+def get_pays_month_user_in_category(id_user,
+                                    id_category,
+                                    *args,
+                                    **kwargs):
+    conn = kwargs['conn']
+    cur = conn.cursor()
+    select = '''
+        SELECT e.pay, e."date", e.comment, e.id_expenses
+        FROM expenses e
+        WHERE e.ref_id_category_expenses = {}
+        AND e.ref_id_users = {}
+        AND EXTRACT(MONTH FROM e.date) = EXTRACT(MONTH FROM  now())
+        AND EXTRACT(YEAR FROM  e.date) = EXTRACT(YEAR FROM  now())
+        ORDER BY e."date" ASC, e.pay DESC 
+    '''.format(id_category, id_user)
+    cur.execute(select)
+    data = [
+        {
+            'id_expenses': r[3],
+            'pay': r[0],
+            'date': '{}-{}-{}'.format(r[1].day,r[1].month,r[1].year),
+            'comment':r[2]
+        }
+    for r in cur.fetchall()]
+    return data
+
+
+@decorator_db
+def get_by_categories_pay_month(id_user,
+                                *args,
+                                **kwargs):
+    conn = kwargs['conn']
+    cur = conn.cursor()
+    select = '''
+        SELECT id_category_expenses, title_expenses
+        FROM category_expenses
+    '''
+    cur.execute(select)
+    data = {
+        r[1]: get_pays_month_user_in_category(id_user, r[0])
+        for r in cur.fetchall()
+    }
+    return data
+
+
+
+@decorator_db
 def get_statistic(id_user,
                   id_category,
                   period='day',
@@ -178,7 +225,7 @@ def get_statistic(id_user,
             'id_expenses': r[0],
             'pay': r[2],
             'comment': r[1],
-            'date': r[3]
+            'date': '{}-{}-{}'.format(r[3].day,r[3].month,r[3].year)
         })
         sum += r[2]
     return data, sum
